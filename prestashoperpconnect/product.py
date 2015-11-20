@@ -110,7 +110,7 @@ class ProductImageMapper(PrestashopImportMapper):
 
     @mapping
     def product_id(self, record):
-        binder = self.binder_for('prestashop;product.template')
+        binder = self.binder_for('prestashop.product.template')
         return {'product_id': binder.to_openerp(
             record['id_product'], unwrap=True
         )}

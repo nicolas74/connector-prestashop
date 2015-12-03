@@ -16,11 +16,12 @@ pip install -r requirements.txt
 ```
 
 This module is based on modules in other repositories :
-- https://github.com/OCA/connector.git
-- https://github.com/OCA/connector-ecommerce.git
-- https://github.com/OCA/product-attribute.git
-- https://github.com/OCA/e-commerce.git
-- https://github.com/OCA/sale-workflow.git
+
+- https://github.com/OCA/connector.git branch 8.0
+- https://github.com/OCA/connector-ecommerce.git branch 8.0
+- https://github.com/pedrobaeza/product-attribute.git branch 8.0-product_images
+- https://github.com/nicolas74/e-commerce.git branch 8.0
+- https://github.com/OCA/sale-workflow.git branch 8.0
  
 
 Getting started

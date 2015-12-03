@@ -150,22 +150,23 @@ class ProductCombinationMapper(PrestashopImportMapper):
         return template_binder.to_openerp(record['id_product'])
 
     def _get_option_value(self, record):
-        option_values = record['associations']['product_option_values'][
-            'product_option_value']
-        if type(option_values) is dict:
-            option_values = [option_values]
+        if 'product_option_value' in record['associations']['product_option_values']:
+            option_values = record['associations']['product_option_values'][
+                'product_option_value']
+            if type(option_values) is dict:
+                option_values = [option_values]
 
-        for option_value in option_values:
-            option_value_binder = self.binder_for(
-                'prestashop.product.combination.option.value')
-            option_value_openerp_id = option_value_binder.to_openerp(
-                option_value['id'])
+            for option_value in option_values:
+                option_value_binder = self.binder_for(
+                    'prestashop.product.combination.option.value')
+                option_value_openerp_id = option_value_binder.to_openerp(
+                    option_value['id'])
 
-            option_value_object = self.session.browse(
-                'prestashop.product.combination.option.value',
-                option_value_openerp_id
-            )
-            yield option_value_object
+                option_value_object = self.session.browse(
+                    'prestashop.product.combination.option.value',
+                    option_value_openerp_id
+                )
+                yield option_value_object
 
     @mapping
     def name(self, record):

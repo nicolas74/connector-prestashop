@@ -25,7 +25,7 @@ import logging
 from datetime import datetime
 from openerp.tools.translate import _
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.queue.job import job, related_action
 from openerp.addons.connector.unit.synchronizer import Exporter
 from openerp.addons.prestashoperpconnect.unit.mapper import TranslationPrestashopExportMapper
 from openerp.addons.connector.exception import (IDMissingInBackend,
@@ -33,6 +33,7 @@ from openerp.addons.connector.exception import (IDMissingInBackend,
 from .import_synchronizer import import_record
 from ..connector import get_environment
 from contextlib import contextmanager
+from ..related_action import unwrap_binding
 
 from openerp.addons.prestashoperpconnect.backend import prestashop
 
@@ -334,6 +335,7 @@ class TranslationPrestashopExporter(PrestashopExporter):
 
 
 @job
+@related_action(action=unwrap_binding)
 def export_record(session, model_name, binding_id, fields=None):
     """ Export a record on Prestashop """
     record = session.env[model_name].browse(binding_id)

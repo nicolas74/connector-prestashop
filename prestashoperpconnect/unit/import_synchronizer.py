@@ -940,6 +940,24 @@ def import_product_image(session, model_name, backend_id, product_tmpl_id,
     importer = env.get_connector_unit(PrestashopImporter)
     importer.run(product_tmpl_id, image_id)
 
+@job
+def import_groups_only(session, backend_id, since_date=None):
+    """ Prepare the import of partners modified on Prestashop """
+
+    #_logger.debug("In import_groups_only {...")
+    filters = {}
+    now_fmt = datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+    import_batch(
+        session, 'prestashop.res.partner.category', backend_id, filters,
+    )
+    session.pool.get('prestashop.backend').write(
+        session.cr,
+        session.uid,
+        backend_id,
+        {'import_groups_only': now_fmt},
+        context=session.context
+    )
+    #_logger.debug("... }")
 
 @job
 def import_customers_since(session, backend_id, since_date=None):

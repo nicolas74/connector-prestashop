@@ -40,6 +40,8 @@ from openerp.addons.connector.connector import Binder
 from openerp.addons.connector.unit.mapper import only_create
 from openerp.addons.connector_ecommerce.sale import ShippingLineBuilder
 
+import logging
+_logger = logging.getLogger(__name__)
 
 class PrestashopImportMapper(ImportMapper):
 

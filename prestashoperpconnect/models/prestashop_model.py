@@ -35,6 +35,7 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.addons.connector.session import ConnectorSession
 from ..unit.import_synchronizer import (
     import_batch,
+    import_groups_only,
     import_customers_since,
     import_orders_since,
     import_products,
@@ -150,6 +151,21 @@ class prestashop_backend(orm.Model):
         dt = pytz.utc.localize(dt)
         dt = dt.astimezone(timezone)
         return dt
+
+    def import_groups_only(self, cr, uid, ids, context=None):
+        if not hasattr(ids, '__iter__'):
+            ids = [ids]
+        session = ConnectorSession(cr, uid, context=context)
+        for backend_record in self.browse(cr, uid, ids, context=context):
+            since_date = {}
+            import_groups_only.delay(
+                session,
+                backend_record.id,
+                since_date,
+                priority=10,
+            )
+
+        return True
 
     def import_customers_since(self, cr, uid, ids, context=None):
         if not hasattr(ids, '__iter__'):

@@ -22,6 +22,10 @@
 
 import logging
 
+from openerp import SUPERUSER_ID
+from openerp.osv import fields, osv, orm
+from openerp.tools.translate import _
+
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.unit.backend_adapter import BackendAdapter
 from ..backend import prestashop
@@ -58,7 +62,7 @@ class DirectBinder(ConnectorUnit):
             raise osv.except_osv(
                 _('Error :'),
                 _('Failed to query %s via PS webservice')
-                % adapter.prestashop_model
+                % adapter._prestashop_model
             )
         binder = self.binder_for()
         # Loop on all PS IDs

@@ -49,12 +49,12 @@ _logger = logging.getLogger(__name__)
 class PrestashopImporter(Importer):
     """ Base importer for Prestashop """
 
-    def __init__(self, environment):
+    def __init__(self, connector_env):
         """
-        :param environment: current environment (backend, session, ...)
-        :type environment: :py:class:`connector.connector.Environment`
+        :param connector_env: current environment (backend, session, ...)
+        :type connector_env: :class:`connector.connector.ConnectorEnvironment`
         """
-        super(PrestashopImporter, self).__init__(environment)
+        super(PrestashopImporter, self).__init__(connector_env)
         self.prestashop_id = None
         self.prestashop_record = None
 
@@ -529,7 +529,7 @@ class TranslatableRecordImporter(PrestashopImporter):
         erp_language_id = language_binder.to_openerp(prestashop_id)
         if erp_language_id is None:
             return None
-        model = self.environment.session.pool.get('prestashop.res.lang')
+        model = self.connector_env.session.pool.get('prestashop.res.lang')
         erp_lang = model.read(
             self.session.cr,
             self.session.uid,
@@ -539,7 +539,7 @@ class TranslatableRecordImporter(PrestashopImporter):
 
     def find_each_language(self, record):
         languages = {}
-        for field in self._translatable_fields[self.environment.model_name]:
+        for field in self._translatable_fields[self.connector_env.model_name]:
             # TODO FIXME in prestapyt
             if not isinstance(record[field]['language'], list):
                 record[field]['language'] = [record[field]['language']]
@@ -554,7 +554,7 @@ class TranslatableRecordImporter(PrestashopImporter):
     def _split_per_language(self, record):
         splitted_record = {}
         languages = self.find_each_language(record)
-        model_name = self.environment.model_name
+        model_name = self.connector_env.model_name
         for language_id, language_code in languages.items():
             splitted_record[language_code] = record.copy()
             for field in self._translatable_fields[model_name]:

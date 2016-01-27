@@ -70,10 +70,11 @@
                                 <label string="Import customer groups only" class="oe_inline"/>
                                 <p class="oe_grey oe_inline">
                                     As import is asynchronous sometime partner is imported ahead groups.
-                                    If groups is not imported yet then partner import is failed with this following error:
+                                    If groups are not imported yet then partner import is failed with this following error:
                                     MappingError: Can not find an existing prestashop.
                                     res.partner.catgory for external record -x- without unwrapping.
                                     You can force right sequence by this way.
+                                    Doesn't work yet !
                                 </p>
                             </div>
                             <button name="import_groups_only"
@@ -83,7 +84,6 @@
                         </group>
                         <group>
                             <div>
-                                <label string="Import customer groups and customers since" class="oe_inline"/>
                                 <field name="import_partners_since"
                                        class="oe_inline"
                                        nolabel="1"/>

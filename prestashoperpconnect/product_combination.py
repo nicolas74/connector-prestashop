@@ -272,8 +272,7 @@ class ProductCombinationOptionImporter(PrestashopImporter):
                 'openerp_id': attribute_ids[0],
                 'backend_id': self.backend_record.id,
             }
-            erp_id = self.model.create(self.session.cr, self.session.uid,
-                                       data, context)
+            erp_id = self.model.create(data)
             self.binder.bind(self.prestashop_id, erp_id)
 
         self._import_values()

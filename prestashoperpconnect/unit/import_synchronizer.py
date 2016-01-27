@@ -136,6 +136,7 @@ class PrestashopImporter(Importer):
         else:
             binding = self._create(record)
 
+
         self.binder.bind(self.prestashop_id, binding)
 
         self._after_import(binding)
@@ -239,6 +240,8 @@ class DirectBatchImporter(BatchImporter):
     _model_name = [
         'prestashop.shop.group',
         'prestashop.shop',
+        'prestashop.product.combination.option',
+        'prestashop.product.combination.option.value',
         'prestashop.account.tax.group',
         'prestashop.sale.order.state',
     ]
@@ -285,6 +288,9 @@ class DelayedBatchImporter(BatchImporter):
 class ResPartnerRecordImporter(PrestashopImporter):
     _model_name = 'prestashop.res.partner'
 
+    def _validate_data(self, data):
+        _logger.info('_validate_data data =) ' + str(data))
+
     def _import_dependencies(self):
         groups = self.prestashop_record.get('associations', {}) \
             .get('groups', {}).get('group', [])
@@ -297,13 +303,15 @@ class ResPartnerRecordImporter(PrestashopImporter):
     def _after_import(self, erp_id):
         binder = self.binder_for(self._model_name)
         ps_id = binder.to_backend(erp_id)
-        import_batch.delay(
-            self.session,
-            'prestashop.address',
-            self.backend_record.id,
-            filters={'filter[id_customer]': '[%d]' % (ps_id)},
-            priority=10,
-        )
+        # Yotech : If we want to import partner first, we have to comment import_batch address here!
+        if ps_id:
+            import_batch.delay(
+                self.session,
+                'prestashop.address',
+                self.backend_record.id,
+                filters={'filter[id_customer]': '[%d]' % (ps_id)},
+                priority=10,
+            )
 
 
 @prestashop
@@ -693,7 +701,7 @@ class TemplateRecordImporter(TranslatableRecordImporter):
         self.import_images(erp_id)
         self.import_default_image(erp_id)
         self.import_supplierinfo(erp_id)
-        self.import_combinations()
+        self.import_combinations(erp_id)
         self.attribute_line(erp_id)
         self.deactivate_default_product(erp_id)
 
@@ -729,7 +737,7 @@ class TemplateRecordImporter(TranslatableRecordImporter):
                     'value_ids': [(6, 0, set(value_ids))]}
                 )
 
-    def import_combinations(self):
+    def import_combinations(self, template):
         prestashop_record = self._get_prestashop_data()
         associations = prestashop_record.get('associations', {})
 
@@ -776,7 +784,9 @@ class TemplateRecordImporter(TranslatableRecordImporter):
             self.backend_record.id,
             filters=filters
         )
-        template_id = template.openerp_id.id
+        #template_id = template.openerp_id.id
+        _logger.debug("template " + str(template))
+        template_id = template.id
         ps_supplierinfos = self.session.env[supplierinfo_model].search(
             [('product_tmpl_id', '=', template_id)]
         )
@@ -793,16 +803,17 @@ class TemplateRecordImporter(TranslatableRecordImporter):
         adapter = self.unit_for(
             PrestaShopCRUDAdapter, 'prestashop.product.image'
         )
-        try:
-            image = adapter.read(template.id,
-                                 record['id_default_image']['value'])
-            template.write(
-                {"image": image['content']}
-            )
-        except PrestaShopWebServiceError:
-            pass
-        except IOError:
-            pass
+        if template:
+            try:
+                image = adapter.read(template.id,
+                                     record['id_default_image']['value'])
+                template.write(
+                    {"image": image['content']}
+                )
+            except PrestaShopWebServiceError:
+                pass
+            except IOError:
+                pass
 
     def _import_dependencies(self):
         self._import_default_category()
@@ -910,11 +921,14 @@ class ProductPricelistImporter(TranslatableRecordImporter):
         'prestashop.groups.pricelist': ['name'],
     }
 
+    # def _run_record(self, prestashop_record, lang_code, erp_id=None):
+    #     return super(ProductPricelistImporter, self)._run_record(
+    #         prestashop_record, lang_code, erp_id=erp_id
+    #     )
     def _run_record(self, prestashop_record, lang_code, erp_id=None):
         return super(ProductPricelistImporter, self)._run_record(
-            prestashop_record, lang_code, erp_id=erp_id
+            prestashop_record, lang_code
         )
-
 
 @job
 def import_batch(session, model_name, backend_id, filters=None, **kwargs):
@@ -944,7 +958,6 @@ def import_product_image(session, model_name, backend_id, product_tmpl_id,
 def import_groups_only(session, backend_id, since_date=None):
     """ Prepare the import of partners modified on Prestashop """
 
-    #_logger.debug("In import_groups_only {...")
     filters = {}
     now_fmt = datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT)
     import_batch(
@@ -957,7 +970,6 @@ def import_groups_only(session, backend_id, since_date=None):
         {'import_groups_only': now_fmt},
         context=session.context
     )
-    #_logger.debug("... }")
 
 @job
 def import_customers_since(session, backend_id, since_date=None):
@@ -1017,7 +1029,6 @@ def import_orders_since(session, backend_id, since_date=None):
         context=session.context
     )
 
-
 @job
 def import_products(session, backend_id, since_date):
     filters = None
@@ -1032,13 +1043,13 @@ def import_products(session, backend_id, since_date):
         filters,
         priority=15
     )
-#    import_batch(
-#        session,
-#        'prestashop.product.template',
-#        backend_id,
-#        filters,
-#        priority=15
-#    )
+    import_batch(
+       session,
+       'prestashop.product.template',
+       backend_id,
+       filters,
+       priority=15
+   )
     session.pool.get('prestashop.backend').write(
         session.cr,
         session.uid,

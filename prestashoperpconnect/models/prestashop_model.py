@@ -137,8 +137,11 @@ class prestashop_backend(orm.Model):
                 directBinder = env.get_connector_unit(DirectBinder)
                 directBinder.run()
 
+            import_batch(session, 'prestashop.product.combination.option', backend_id)
+            import_batch(session, 'prestashop.product.combination.option.value', backend_id)
             import_batch(session, 'prestashop.account.tax.group', backend_id)
             import_batch(session, 'prestashop.sale.order.state', backend_id)
+
         return True
 
     def _date_as_user_tz(self, cr, uid, dtstr):

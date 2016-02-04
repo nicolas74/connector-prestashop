@@ -3,7 +3,7 @@
 #
 #    Prestashoperpconnect : OpenERP-PrestaShop connector
 #    Copyright (C) 2013 Akretion (http://www.akretion.com/)
-#    @author: Alexis de Lattre <alexis.delattre@akretion.com>
+#    @aut#hor: Alexis de Lattre <alexis.delattre@akretion.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -24,5 +24,4 @@ import openerp.addons.connector.backend as backend
 
 
 prestashop = backend.Backend('prestashop')
-prestashop1500 = backend.Backend(parent=prestashop, version='1.5')
 prestashop1600 = backend.Backend(parent=prestashop, version='1.6')

@@ -65,7 +65,7 @@ class prestashop_backend(orm.Model):
 
         Can be inherited to add custom versions.
         """
-        return [('1.5', '1.5'),('1.6', '1.6')]
+        return [('1.6', '1.6')]
 
     _columns = {
         'version': fields.selection(

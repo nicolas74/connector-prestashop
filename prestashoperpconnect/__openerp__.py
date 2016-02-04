@@ -73,6 +73,7 @@ This connector is built on a very solid basis, but still requires deep knowledge
         'delivery_view.xml',
         'prestashoperpconnect_menu.xml',
         'partner_view.xml',
+        'account_view.xml',
         'sale_view.xml',
         'setting_view.xml',
 

@@ -3,6 +3,12 @@
 from openerp.osv import fields
 from openerp.osv import orm
 
+class account_tax(orm.Model):
+    _inherit = 'account.tax'
+
+    _columns = {
+        'prestashop_tax_available': fields.boolean('Prestashop Tax Available', help="If 'Use tax included price' option is not set in prestashop backend Tax can be use to order lines after searching by amount. If 2 taxes ids are found first will bw used"),
+     }
 
 class account_invoice(orm.Model):
     _inherit = 'account.invoice'

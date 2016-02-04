@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  prestashoperpconnect for Odoo
+  Copyright (C) 2016 Nicolas TRUBERT <nicolas.trubert@yotech.pro>
+-->
+
+<openerp>
+    <data>
+        <record id="view_prestashop_account_tax_form" model="ir.ui.view">
+            <field name="name">prestashop.account.tax.form</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='active']" position="after">
+                       <field name="prestashop_tax_available"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

@@ -133,13 +133,11 @@ class GenericAdapter(PrestaShopCRUDAdapter):
         """
         api = self.connect()
         #To debug asynchronous issue
-        #_logger.debug(' In GenericAdapter search {... ')
-        #filters = {'date': '1', 'limit': '0,1000', 'filter[date_upd]': '>[2015-12-03 10:02:34]'}
-        filters = {}
-        #_logger.debug(' filters : ' +  str(filters))
+        _logger.debug(' In GenericAdapter search {... ')
+        _logger.debug(' filters : ' +  str(filters))
         res = api.search(self._prestashop_model, filters)
-        #_logger.debug(' res : ' +  str(res))
-        #_logger.debug(' ...} ')
+        _logger.debug(' res : ' +  str(res))
+        _logger.debug(' ...} ')
         return res
 
     def read(self, id, attributes=None):

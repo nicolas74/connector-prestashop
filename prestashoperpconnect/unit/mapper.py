@@ -335,7 +335,7 @@ class AddressImportMapper(PrestashopImportMapper):
     @mapping
     def customer(self, record):
         return {'customer': True}
-    
+
     @mapping
     def country(self, record):
         if record.get('id_country'):
@@ -379,10 +379,10 @@ class SaleOrderMapper(PrestashopImportMapper):
     ]
 
     def _get_sale_order_lines(self, record):
-        orders = record['associations'].get('order_rows', {}).get('order_row', [])
-        if isinstance(orders, dict):
-            return [orders]
-        return orders
+        order_rows = record['associations'].get('order_rows', {}).get('order_rows', [])
+        if isinstance(order_rows, dict):
+            return [order_rows]
+        return order_rows
 
     children = [
         (
@@ -594,12 +594,13 @@ class SaleOrderLineMapper(PrestashopImportMapper):
             key = 'unit_price_tax_incl'
         else:
             key = 'unit_price_tax_excl'
-        if record['reduction_percent']:
-            reduction = Decimal(record['reduction_percent'])
-            price = Decimal(record[key])
-            price_unit = price / ((100 - reduction) / 100)
-        else:
-            price_unit = record[key]
+        # if record['reduction_percent']:
+        #     reduction = Decimal(record['reduction_percent'])
+        #     price = Decimal(record[key])
+        #     price_unit = price / ((100 - reduction) / 100)
+        # else:
+        #     price_unit = record[key]
+        price_unit = record[key]
         return {'price_unit': price_unit}
 
     @mapping
@@ -623,27 +624,51 @@ class SaleOrderLineMapper(PrestashopImportMapper):
             product_id = product[0].id
         return {'product_id': product_id}
 
-    def _find_tax(self, ps_tax_id):
-        binder = self.binder_for('prestashop.account.tax')
-        openerp_id = binder.to_openerp(ps_tax_id, unwrap=True)
-        tax = self.session.read('account.tax', openerp_id, ['price_include', 'related_inc_tax_id'])
-        if self.backend_record.taxes_included and not tax['price_include'] and tax['related_inc_tax_id']:
-            return tax['related_inc_tax_id'][0]
-        return openerp_id
+    # def _find_tax(self, ps_tax_id):
+    #     binder = self.binder_for('prestashop.account.tax')
+    #     openerp_id = binder.to_openerp(ps_tax_id, unwrap=True)
+    #     tax = self.session.read('account.tax', openerp_id, ['price_include', 'related_inc_tax_id'])
+    #     if self.backend_record.taxes_included and not tax['price_include'] and tax['related_inc_tax_id']:
+    #         return tax['related_inc_tax_id'][0]
+    #     return openerp_id
 
     @mapping
     def tax_id(self, record):
-        taxes = record.get('associations', {}).get('taxes', {}).get('tax', [])
-        if not isinstance(taxes, list):
-            taxes = [taxes]
-        result = []
-        for tax in taxes:
-            openerp_id = self._find_tax(tax['id'])
-            if openerp_id:
-                result.append(openerp_id)
-        if result:
-            return {'tax_id': [(6, 0, result)]}
-        return {}
+        if self.backend_record.taxes_included:
+            return_value = {}
+        else:
+            tax_excl = float(record['unit_price_tax_excl'])
+            tax_incl = float(record['unit_price_tax_incl'])
+            tax_percent = ( (tax_incl-tax_excl) / tax_excl )
+            _logger.info('tax_percent =) ' + str(tax_percent))
+            tax_ids = self.session.env['account.tax'].search([
+                    ('amount', '=', tax_percent),
+                    ('prestashop_tax_available', '=', 'True')
+                    ])
+            _logger.info('tax_ids =) ' + str(tax_ids))
+            if len(tax_ids) >= 1:
+                tax_id = tax_ids[0]
+                _logger.info('tax_id =) ' + str(tax_id))
+                if tax_id['type'] == 'percent':
+                    return_value = {'tax_id': [(6, 0, [tax_id['id']])]}
+            else:
+                return_value = {}
+        _logger.info('return_value =) ' + str(return_value))
+        return return_value
+
+    # @mapping
+    # def tax_id(self, record):
+    #     taxes = record.get('associations', {}).get('taxes', {}).get('tax', [])
+    #     if not isinstance(taxes, list):
+    #         taxes = [taxes]
+    #     result = []
+    #     for tax in taxes:
+    #         openerp_id = self._find_tax(tax['id'])
+    #         if openerp_id:
+    #             result.append(openerp_id)
+    #     if result:
+    #         return {'tax_id': [(6, 0, result)]}
+    #     return {}
 
     @mapping
     def backend_id(self, record):
@@ -876,4 +901,4 @@ class PrestashopShippingLineBuilder(ShippingLineBuilder):
         vals = super(PrestashopShippingLineBuilder, self).get_line()
         if self.is_delivery:
             vals['is_delivery'] = True
-        return vals 
+        return vals

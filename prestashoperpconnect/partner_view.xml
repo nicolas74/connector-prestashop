@@ -49,6 +49,7 @@
                 <tree string="PrestaShop Partner" version="7.0">
                     <field name="backend_id"/>
                     <field name="shop_group_id"/>
+                    <field name="shop_id"/>
                     <button name="resync"
                         type="object"
                         string="Resync" />

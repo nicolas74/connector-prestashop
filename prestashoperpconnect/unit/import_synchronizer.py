@@ -265,6 +265,7 @@ class DelayedBatchImporter(BatchImporter):
         'prestashop.address',
         'prestashop.product.category',
 #        'prestashop.product.product',
+        'prestashop.product.combination',
         'prestashop.product.template',
         'prestashop.sale.order',
         'prestashop.refund',
@@ -493,14 +494,13 @@ class SaleOrderImporter(PrestashopImporter):
             self._check_dependency(record['id_carrier'],
                                    'prestashop.delivery.carrier')
 
-        orders = record['associations'] \
-            .get('order_rows', {}) \
-            .get('order_row', [])
-        if isinstance(orders, dict):
-            orders = [orders]
-        for order in orders:
+        order_rows = record['associations'].get('order_rows', {}).get('order_rows', [])
+        
+        if isinstance(order_rows, dict):
+            order_rows = [order_rows]
+        for order_row in order_rows:
             try:
-                self._check_dependency(order['product_id'],
+                self._check_dependency(order_row['product_id'],
                                        'prestashop.product.template')
             except PrestaShopWebServiceError:
                 pass
@@ -1046,6 +1046,13 @@ def import_products(session, backend_id, since_date):
     import_batch(
        session,
        'prestashop.product.template',
+       backend_id,
+       filters,
+       priority=15
+   )
+    import_batch(
+       session,
+       'prestashop.product.combination',
        backend_id,
        filters,
        priority=15
